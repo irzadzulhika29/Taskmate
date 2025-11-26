@@ -1,6 +1,5 @@
 package com.example.taskmate.ui.screens
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
@@ -52,9 +51,8 @@ import androidx.navigation.NavHostController
 import com.example.taskmate.viewmodel.TaskFormState
 import com.example.taskmate.viewmodel.TaskPriority
 import com.example.taskmate.viewmodel.TaskViewModel
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,127 +70,142 @@ fun AddTaskScreen(
 
     LaunchedEffect(taskId) {
         if (taskId != null) {
-            taskViewModel.getTask(taskId)?.let { task ->
+            val task = taskViewModel.getTask(taskId)
+            if (task != null) {
                 formState = TaskFormState(
                     title = task.title,
                     description = task.description,
                     category = task.category,
                     priority = task.priority,
-                    date = task.date,
-                    time = task.time
+                    dateMillis = task.dateMillis,
+                    timeHour = task.timeHour,
+                    timeMinute = task.timeMinute
                 )
             }
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Header(navController = navController, mode = mode)
-
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                InputField(
-                    label = "Tugas",
-                    value = formState.title,
-                    onValueChange = { formState = formState.copy(title = it) },
-                    placeholder = "Tuliskan judul tugas",
-                    readOnly = isReadOnly
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                InputField(
-                    label = "Deskripsi",
-                    value = formState.description,
-                    onValueChange = { formState = formState.copy(description = it) },
-                    placeholder = "Berikan deskripsi singkat tugas",
-                    supporting = "optional",
-                    readOnly = isReadOnly
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                PriorityDropdown(
-                    selected = formState.priority,
-                    onSelected = { formState = formState.copy(priority = it) },
-                    readOnly = isReadOnly
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                CategoryDropdown(
-                    selected = formState.category,
-                    onSelected = { formState = formState.copy(category = it) },
-                    readOnly = isReadOnly
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                DateTimeRow(
-                    date = formState.date,
-                    time = formState.time,
-                    onDateChange = { formState = formState.copy(date = it) },
-                    onTimeChange = { formState = formState.copy(time = it) },
-                    readOnly = isReadOnly
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Button(
-                    onClick = {
-                        taskViewModel.upsertTask(taskId, formState, mode)
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    enabled = !isReadOnly && formState.title.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C8CEB))
-                ) {
-                    Text(text = "Simpan", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Header(navController, mode)
+            FormContent(
+                formState = formState,
+                onFormStateChange = { formState = it },
+                isReadOnly = isReadOnly,
+                onSave = {
+                    taskViewModel.upsertTask(taskId, formState, mode)
+                    navController.popBackStack()
                 }
-            }
+            )
         }
     }
 }
 
 @Composable
 private fun Header(navController: NavHostController, mode: String) {
+    val title = when (mode) {
+        "add" -> "Tambah Tugas"
+        "edit" -> "Edit Tugas"
+        else -> "Detail Tugas"
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(140.dp)
+            .height(200.dp)
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF7C8CEB), Color(0xFF8A5CF6))
+                    colors = listOf(Color(0xFF7C8CEB), Color(0xFF8A5CF6))
                 )
             )
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        contentAlignment = Alignment.BottomStart
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = Color.White)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(
-                    text = if (mode == "edit") "Edit Tugas" else if (mode == "detail") "Detail Tugas" else "Tambah Tugas",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Lengkapi data tugas kamu",
-                    color = Color.White.copy(alpha = 0.85f),
-                    fontSize = 14.sp
-                )
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun FormContent(
+    formState: TaskFormState,
+    onFormStateChange: (TaskFormState) -> Unit,
+    isReadOnly: Boolean,
+    onSave: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            InputField(
+                label = "Judul Tugas",
+                value = formState.title,
+                onValueChange = { onFormStateChange(formState.copy(title = it)) },
+                placeholder = "Masukkan judul tugas",
+                readOnly = isReadOnly
+            )
+
+            InputField(
+                label = "Deskripsi",
+                value = formState.description,
+                onValueChange = { onFormStateChange(formState.copy(description = it)) },
+                placeholder = "Masukkan deskripsi tugas",
+                readOnly = isReadOnly,
+                minLines = 3
+            )
+
+            PriorityDropdown(
+                selected = formState.priority,
+                onSelected = { onFormStateChange(formState.copy(priority = it)) },
+                readOnly = isReadOnly
+            )
+
+            CategoryDropdown(
+                selected = formState.category,
+                onSelected = { onFormStateChange(formState.copy(category = it)) },
+                readOnly = isReadOnly
+            )
+
+            DateTimeRow(
+                dateMillis = formState.dateMillis,
+                timeHour = formState.timeHour,
+                timeMinute = formState.timeMinute,
+                onDateChange = { onFormStateChange(formState.copy(dateMillis = it)) },
+                onTimeChange = { hour, minute ->
+                    onFormStateChange(formState.copy(timeHour = hour, timeMinute = minute))
+                },
+                readOnly = isReadOnly
+            )
+
+            if (!isReadOnly) {
+                Button(
+                    onClick = onSave,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C8CEB)),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !isReadOnly && formState.title.isNotBlank(),
+                ) {
+                    Text(text = "Simpan", fontSize = 16.sp, color = Color.White)
+                }
             }
         }
     }
@@ -205,7 +218,7 @@ private fun InputField(
     onValueChange: (String) -> Unit,
     placeholder: String,
     readOnly: Boolean,
-    supporting: String? = null
+    minLines: Int = 1
 ) {
     Text(text = label, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
     OutlinedTextField(
@@ -214,13 +227,11 @@ private fun InputField(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(placeholder) },
         enabled = !readOnly,
+        minLines = minLines,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF7C8CEB)
         )
     )
-    supporting?.let {
-        Text(text = it, color = Color(0xFF6B7280), fontSize = 12.sp)
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -302,18 +313,17 @@ private fun CategoryDropdown(
     }
 }
 
-@SuppressLint("NewApi")
 @Composable
 private fun DateTimeRow(
-    date: LocalDate,
-    time: LocalTime,
-    onDateChange: (LocalDate) -> Unit,
-    onTimeChange: (LocalTime) -> Unit,
+    dateMillis: Long,
+    timeHour: Int,
+    timeMinute: Int,
+    onDateChange: (Long) -> Unit,
+    onTimeChange: (Int, Int) -> Unit,
     readOnly: Boolean
 ) {
     val context = LocalContext.current
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
-    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -322,15 +332,18 @@ private fun DateTimeRow(
         OutlinedButton(
             onClick = {
                 if (readOnly) return@OutlinedButton
-                val today = date
+                val calendar = Calendar.getInstance()
+                calendar.timeInMillis = dateMillis
                 DatePickerDialog(
                     context,
                     { _, year, month, day ->
-                        onDateChange(LocalDate.of(year, month + 1, day))
+                        val newCalendar = Calendar.getInstance()
+                        newCalendar.set(year, month, day)
+                        onDateChange(newCalendar.timeInMillis)
                     },
-                    today.year,
-                    today.monthValue - 1,
-                    today.dayOfMonth
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
                 ).show()
             },
             modifier = Modifier.weight(1f),
@@ -338,20 +351,19 @@ private fun DateTimeRow(
         ) {
             Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Tanggal")
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = date.format(dateFormatter))
+            Text(text = dateFormatter.format(Date(dateMillis)))
         }
 
         OutlinedButton(
             onClick = {
                 if (readOnly) return@OutlinedButton
-                val current = time
                 TimePickerDialog(
                     context,
                     { _, hour, minute ->
-                        onTimeChange(LocalTime.of(hour, minute))
+                        onTimeChange(hour, minute)
                     },
-                    current.hour,
-                    current.minute,
+                    timeHour,
+                    timeMinute,
                     true
                 ).show()
             },
@@ -360,12 +372,11 @@ private fun DateTimeRow(
         ) {
             Text(text = "🕐")
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = time.format(timeFormatter))
+            Text(text = String.format(Locale.getDefault(), "%02d:%02d", timeHour, timeMinute))
         }
     }
 }
 
-@SuppressLint("NewApi")
 @Composable
 private fun taskFormSaver() = androidx.compose.runtime.saveable.Saver<TaskFormState, Any>(
     save = {
@@ -374,8 +385,9 @@ private fun taskFormSaver() = androidx.compose.runtime.saveable.Saver<TaskFormSt
             it.description,
             it.category,
             it.priority.name,
-            it.date.toString(),
-            it.time.toString()
+            it.dateMillis,
+            it.timeHour,
+            it.timeMinute
         )
     },
     restore = {
@@ -385,8 +397,10 @@ private fun taskFormSaver() = androidx.compose.runtime.saveable.Saver<TaskFormSt
             description = values[1] as String,
             category = values[2] as String,
             priority = TaskPriority.valueOf(values[3] as String),
-            date = LocalDate.parse(values[4] as String),
-            time = LocalTime.parse(values[5] as String)
+            dateMillis = values[4] as Long,
+            timeHour = values[5] as Int,
+            timeMinute = values[6] as Int
         )
     }
 )
+

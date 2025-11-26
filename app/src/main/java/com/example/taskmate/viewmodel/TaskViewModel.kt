@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.LocalDate
-import java.time.LocalTime
-import java.util.UUID
+import java.text.SimpleDateFormat
+import java.util.*
 
 enum class TaskPriority(val label: String) {
     HIGH("Tinggi"),
@@ -20,19 +19,30 @@ data class Task(
     val description: String,
     val category: String,
     val priority: TaskPriority,
-    val date: LocalDate = LocalDate.now(),
-    val time: LocalTime,
+    val dateMillis: Long = System.currentTimeMillis(),
+    val timeHour: Int,
+    val timeMinute: Int,
     val colorHex: Long,
     val isMissed: Boolean = false
-)
+) {
+    fun getTimeString(): String {
+        return String.format(Locale.getDefault(), "%02d:%02d", timeHour, timeMinute)
+    }
+
+    fun getDateString(): String {
+        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        return sdf.format(Date(dateMillis))
+    }
+}
 
 data class TaskFormState(
     val title: String = "",
     val description: String = "",
     val category: String = "",
     val priority: TaskPriority = TaskPriority.HIGH,
-    val date: LocalDate = LocalDate.now(),
-    val time: LocalTime = LocalTime.now()
+    val dateMillis: Long = System.currentTimeMillis(),
+    val timeHour: Int = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+    val timeMinute: Int = Calendar.getInstance().get(Calendar.MINUTE)
 )
 
 class TaskViewModel : ViewModel() {
@@ -43,7 +53,8 @@ class TaskViewModel : ViewModel() {
                 description = "Kumpulkan sampah rumah dan buang ke TPS",
                 category = "Kebersihan",
                 priority = TaskPriority.HIGH,
-                time = LocalTime.of(7, 0),
+                timeHour = 7,
+                timeMinute = 0,
                 colorHex = 0xFFFFF6DAL,
                 isMissed = true
             ),
@@ -52,7 +63,8 @@ class TaskViewModel : ViewModel() {
                 description = "Balas email penting dari dosen",
                 category = "Pekerjaan",
                 priority = TaskPriority.MEDIUM,
-                time = LocalTime.of(9, 50),
+                timeHour = 9,
+                timeMinute = 50,
                 colorHex = 0xFFE1F3F9L
             ),
             Task(
@@ -60,7 +72,8 @@ class TaskViewModel : ViewModel() {
                 description = "Lengkapi bab 3 metodologi",
                 category = "Akademik",
                 priority = TaskPriority.HIGH,
-                time = LocalTime.of(15, 0),
+                timeHour = 15,
+                timeMinute = 0,
                 colorHex = 0xFFFCE4E9L,
                 isMissed = true
             ),
@@ -69,7 +82,8 @@ class TaskViewModel : ViewModel() {
                 description = "Lari 20 menit di sekitar kompleks",
                 category = "Kesehatan",
                 priority = TaskPriority.LOW,
-                time = LocalTime.of(17, 30),
+                timeHour = 17,
+                timeMinute = 30,
                 colorHex = 0xFFE8F6EDL
             ),
             Task(
@@ -77,7 +91,8 @@ class TaskViewModel : ViewModel() {
                 description = "Masak ayam panggang dan salad",
                 category = "Rumah Tangga",
                 priority = TaskPriority.MEDIUM,
-                time = LocalTime.of(18, 0),
+                timeHour = 18,
+                timeMinute = 0,
                 colorHex = 0xFFFFEEE5L
             ),
             Task(
@@ -85,7 +100,8 @@ class TaskViewModel : ViewModel() {
                 description = "Ganti sprei kamar utama dan tamu",
                 category = "Kebersihan",
                 priority = TaskPriority.LOW,
-                time = LocalTime.of(21, 0),
+                timeHour = 21,
+                timeMinute = 0,
                 colorHex = 0xFFE8E4FAL
             )
         )
@@ -108,7 +124,21 @@ class TaskViewModel : ViewModel() {
 
     fun getTask(taskId: String?): Task? = _tasks.value.find { it.id == taskId }
 
-    fun todayCount(): Int = _tasks.value.count { it.date == LocalDate.now() }
+    fun todayCount(): Int {
+        val today = Calendar.getInstance()
+        today.set(Calendar.HOUR_OF_DAY, 0)
+        today.set(Calendar.MINUTE, 0)
+        today.set(Calendar.SECOND, 0)
+        today.set(Calendar.MILLISECOND, 0)
+        val todayMillis = today.timeInMillis
+
+        val tomorrow = Calendar.getInstance()
+        tomorrow.timeInMillis = todayMillis + 24 * 60 * 60 * 1000
+
+        return _tasks.value.count { task ->
+            task.dateMillis >= todayMillis && task.dateMillis < tomorrow.timeInMillis
+        }
+    }
 
     fun missedCount(): Int = _tasks.value.count { it.isMissed }
 
@@ -127,8 +157,9 @@ class TaskViewModel : ViewModel() {
                     description = state.description,
                     category = state.category,
                     priority = state.priority,
-                    date = state.date,
-                    time = state.time,
+                    dateMillis = state.dateMillis,
+                    timeHour = state.timeHour,
+                    timeMinute = state.timeMinute,
                     colorHex = existing.colorHex,
                     isMissed = existing.isMissed
                 )
@@ -140,8 +171,9 @@ class TaskViewModel : ViewModel() {
                     description = state.description,
                     category = state.category.ifBlank { "Lainnya" },
                     priority = state.priority,
-                    date = state.date,
-                    time = state.time,
+                    dateMillis = state.dateMillis,
+                    timeHour = state.timeHour,
+                    timeMinute = state.timeMinute,
                     colorHex = pickColorForCategory(state.category)
                 )
             )
@@ -149,14 +181,14 @@ class TaskViewModel : ViewModel() {
     }
 
     private fun pickColorForCategory(category: String): Long {
-        val normalized = category.trim().lowercase()
-        return when {
-            "kebersihan" in normalized -> 0xFFE8E4FAL
-            "pekerjaan" in normalized -> 0xFFE1F3F9L
-            "akademik" in normalized -> 0xFFFCE4E9L
-            "kesehatan" in normalized -> 0xFFE8F6EDL
-            "rumah" in normalized -> 0xFFFFEEE5L
-            else -> 0xFFFFEBD6L
+        return when (category) {
+            "Kebersihan" -> 0xFFFFF6DAL
+            "Pekerjaan" -> 0xFFE1F3F9L
+            "Akademik" -> 0xFFFCE4E9L
+            "Kesehatan" -> 0xFFE8F6EDL
+            "Rumah Tangga" -> 0xFFFFEEE5L
+            else -> 0xFFE8E4FAL
         }
     }
 }
+

@@ -1,6 +1,5 @@
 package com.example.taskmate.ui.screens
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,7 +61,6 @@ import com.example.taskmate.ui.theme.TextGray
 import com.example.taskmate.viewmodel.Task
 import com.example.taskmate.viewmodel.TaskPriority
 import com.example.taskmate.viewmodel.TaskViewModel
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(navController: NavHostController, taskViewModel: TaskViewModel) {
@@ -275,20 +273,46 @@ private fun TaskListSection(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(tasks, key = { it.id }) { task ->
-                TaskCard(
-                    task = task,
-                    onEditTask = onEditTask,
-                    onDetailTask = onDetailTask,
-                    onDeleteTask = onDeleteTask
-                )
+        if (tasks.isEmpty()) {
+            // Empty state
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Belum ada tugas",
+                        fontSize = 16.sp,
+                        color = TextGray
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Klik tombol di atas untuk menambah tugas",
+                        fontSize = 14.sp,
+                        color = TextGray
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.height(400.dp) // Set fixed height to prevent layout issues
+            ) {
+                items(tasks, key = { it.id }) { task ->
+                    TaskCard(
+                        task = task,
+                        onEditTask = onEditTask,
+                        onDetailTask = onDetailTask,
+                        onDeleteTask = onDeleteTask
+                    )
+                }
             }
         }
     }
 }
 
-@SuppressLint("NewApi")
 @Composable
 private fun TaskCard(
     task: Task,
@@ -310,37 +334,39 @@ private fun TaskCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = task.time.format(DateTimeFormatter.ofPattern("HH:mm")),
+                    text = task.getTimeString(),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = DarkGray
                 )
-                IconButton(onClick = { expanded = true }) {
-                    Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = "Opsi")
-                }
+                Box {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(imageVector = Icons.Outlined.MoreVert, contentDescription = "Opsi")
+                    }
 
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(
-                        text = { Text("Detail") },
-                        onClick = {
-                            expanded = false
-                            onDetailTask(task.id)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        onClick = {
-                            expanded = false
-                            onEditTask(task.id)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Hapus") },
-                        onClick = {
-                            expanded = false
-                            onDeleteTask(task.id)
-                        }
-                    )
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Detail") },
+                            onClick = {
+                                expanded = false
+                                onDetailTask(task.id)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                expanded = false
+                                onEditTask(task.id)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Hapus") },
+                            onClick = {
+                                expanded = false
+                                onDeleteTask(task.id)
+                            }
+                        )
+                    }
                 }
             }
 
