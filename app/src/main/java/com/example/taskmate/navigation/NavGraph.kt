@@ -7,12 +7,21 @@ import androidx.navigation.compose.composable
 import com.example.taskmate.ui.screens.LoginScreen
 import com.example.taskmate.ui.screens.OnboardingScreen
 import com.example.taskmate.ui.screens.RegisterScreen
+import com.example.taskmate.ui.screens.AddTaskScreen
+import com.example.taskmate.ui.screens.HomeScreen
+import com.example.taskmate.ui.screens.AccountScreen
+import com.example.taskmate.viewmodel.TaskViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @Composable
 fun TaskMateNavGraph(
     navController: NavHostController,
     startDestination: String = Screen.Onboarding.route
 ) {
+    val taskViewModel: TaskViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -31,7 +40,7 @@ fun TaskMateNavGraph(
                     navController.navigate(Screen.Login.route)
                 },
                 onRegisterSuccess = {
-                    // Navigate to main app after successful registration
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }
@@ -45,8 +54,42 @@ fun TaskMateNavGraph(
                     // Handle forgot password navigation
                 },
                 onLoginSuccess = {
-                    // Navigate to main app after successful login
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
+            )
+        }
+
+        composable(Screen.Home.route) {
+            HomeScreen(navController = navController, taskViewModel = taskViewModel)
+        }
+
+        composable(Screen.Account.route) {
+            AccountScreen()
+        }
+
+        composable(
+            route = "${Screen.TaskForm.route}?taskId={taskId}&mode={mode}",
+            arguments = listOf(
+                navArgument("taskId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("mode") {
+                    type = NavType.StringType
+                    defaultValue = "add"
+                }
+            )
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString("taskId")
+            val mode = backStackEntry.arguments?.getString("mode") ?: "add"
+            AddTaskScreen(
+                navController = navController,
+                taskViewModel = taskViewModel,
+                taskId = taskId,
+                mode = mode
             )
         }
     }

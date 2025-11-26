@@ -18,3 +18,12 @@ val BackgroundWhite = Color(0xFFFFFFFF)
 val BackgroundGray = Color(0xFFF9FAFB)
 val BorderGray = Color(0xFFE5E7EB)
 val DarkGray = Color(0xFF111827)
+
+// Pastel palette for dashboard
+val PastelPurple = Color(0xFFE8E4FA)
+val PastelPink = Color(0xFFFCE4E9)
+val PastelBlue = Color(0xFFE1F3F9)
+val PastelOrange = Color(0xFFFFEBD6)
+val PastelGreen = Color(0xFFE8F6ED)
+val PastelYellow = Color(0xFFFFF6DA)
+val PastelPeach = Color(0xFFFFEEE5)
