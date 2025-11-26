@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,7 +58,7 @@ fun HomeScreen(navController: NavHostController, taskViewModel: TaskViewModel) {
             TaskAppBar(
                 title = "Dashboard",
                 actions = {
-                    androidx.compose.material3.IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
+                    IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Menu akun"

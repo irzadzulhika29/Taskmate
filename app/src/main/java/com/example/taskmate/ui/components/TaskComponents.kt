@@ -59,6 +59,7 @@ import com.example.taskmate.ui.theme.PastelPurple
 import com.example.taskmate.viewmodel.Task
 import com.example.taskmate.viewmodel.TaskPriority
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.size
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

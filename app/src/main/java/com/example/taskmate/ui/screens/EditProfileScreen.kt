@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
@@ -94,7 +94,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Kembali", tint = Color.White)
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = Color.White)
                     }
                     Text(text = "Edit Profil", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.size(48.dp))
@@ -157,7 +157,7 @@ fun EditProfileScreen(navController: NavHostController) {
                         label = { Text("Tanggal Lahir") },
                         trailingIcon = {
                             IconButton(onClick = { datePickerDialog.show() }) {
-                                Icon(imageVector = Icons.Default.CalendarToday, contentDescription = "Pilih tanggal", tint = Color(0xFF7C83FD))
+                                Icon(imageVector = Icons.Default.DateRange, contentDescription = "Pilih tanggal", tint = Color(0xFF7C83FD))
                             }
                         },
                         readOnly = true,
