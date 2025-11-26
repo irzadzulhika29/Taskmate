@@ -4,12 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.taskmate.ui.screens.ChangePasswordScreen
 import com.example.taskmate.ui.screens.LoginScreen
 import com.example.taskmate.ui.screens.OnboardingScreen
 import com.example.taskmate.ui.screens.RegisterScreen
 import com.example.taskmate.ui.screens.AddTaskScreen
 import com.example.taskmate.ui.screens.HomeScreen
 import com.example.taskmate.ui.screens.AccountScreen
+import com.example.taskmate.ui.screens.EditProfileScreen
 import com.example.taskmate.viewmodel.TaskViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -66,7 +68,23 @@ fun TaskMateNavGraph(
         }
 
         composable(Screen.Account.route) {
-            AccountScreen()
+            AccountScreen(
+                navController = navController,
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(navController = navController)
+        }
+
+        composable(Screen.ChangePassword.route) {
+            ChangePasswordScreen(navController = navController)
         }
 
         composable(
