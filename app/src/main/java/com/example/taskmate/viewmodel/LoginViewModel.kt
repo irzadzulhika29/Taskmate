@@ -14,6 +14,11 @@ data class LoginUiState(
 )
 
 class LoginViewModel : ViewModel() {
+    companion object {
+        private const val ALLOWED_EMAIL = "alfitsani@gmail.com"
+        private const val ALLOWED_PASSWORD = "12345678"
+    }
+
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
@@ -46,10 +51,20 @@ class LoginViewModel : ViewModel() {
             return
         }
 
-        // Simulate login
-        _uiState.value = state.copy(isLoading = true)
-        // In real app, call repository/API here
-        onSuccess()
+        val isCredentialValid = state.email.equals(ALLOWED_EMAIL, ignoreCase = true) &&
+            state.password == ALLOWED_PASSWORD
+
+        _uiState.value = state.copy(isLoading = true, errorMessage = null)
+
+        if (isCredentialValid) {
+            _uiState.value = _uiState.value.copy(isLoading = false)
+            onSuccess()
+        } else {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "Email atau password tidak valid"
+            )
+        }
     }
 
     fun loginWithGoogle(onSuccess: () -> Unit) {
