@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -20,8 +19,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.taskmate.navigation.Screen
+import com.example.taskmate.ui.components.AppBottomNavigation
 import com.example.taskmate.ui.components.SummaryTile
 import com.example.taskmate.ui.components.TaskAppBar
 import com.example.taskmate.ui.components.TaskCard
@@ -60,7 +58,7 @@ fun HomeScreen(navController: NavHostController, taskViewModel: TaskViewModel) {
             TaskAppBar(
                 title = "Dashboard",
                 actions = {
-                    androidx.compose.material3.IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
+                    IconButton(onClick = { navController.navigate(Screen.Account.route) }) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Menu akun"
@@ -76,7 +74,7 @@ fun HomeScreen(navController: NavHostController, taskViewModel: TaskViewModel) {
                 text = { Text("Tambah Tugas") }
             )
         },
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { AppBottomNavigation(navController = navController) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -217,20 +215,3 @@ private fun RowWithSpacing(content: @Composable () -> Unit) {
     }
 }
 
-@Composable
-private fun BottomNavigationBar(navController: NavHostController) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = true,
-            onClick = { navController.navigate(Screen.Home.route) },
-            icon = { Icon(imageVector = Icons.Filled.Home, contentDescription = "Beranda") },
-            label = { Text("Beranda") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(Screen.Account.route) },
-            icon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Akun") },
-            label = { Text("Akun") }
-        )
-    }
-}
