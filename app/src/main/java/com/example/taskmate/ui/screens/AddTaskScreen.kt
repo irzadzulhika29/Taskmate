@@ -1,9 +1,11 @@
 package com.example.taskmate.ui.screens
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,31 +13,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +56,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskScreen(
     navController: NavHostController,
@@ -62,7 +66,7 @@ fun AddTaskScreen(
 ) {
     val isReadOnly = mode == "detail"
 
-    var formState by rememberSaveable(stateSaver = TaskFormSaver()) {
+    var formState by rememberSaveable(stateSaver = taskFormSaver()) {
         mutableStateOf(TaskFormState())
     }
 
@@ -174,7 +178,7 @@ private fun Header(navController: NavHostController, mode: String) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Kembali", tint = Color.White)
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = Color.White)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -210,8 +214,7 @@ private fun InputField(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text(placeholder) },
         enabled = !readOnly,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            containerColor = Color.White,
+        colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF7C8CEB)
         )
     )
@@ -220,6 +223,7 @@ private fun InputField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PriorityDropdown(
     selected: TaskPriority,
@@ -238,10 +242,13 @@ private fun PriorityDropdown(
                 .fillMaxWidth(),
             readOnly = true,
             enabled = !readOnly,
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
             TaskPriority.entries.forEach { priority ->
                 DropdownMenuItem(
                     text = { Text(priority.label) },
@@ -255,6 +262,7 @@ private fun PriorityDropdown(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryDropdown(
     selected: String,
@@ -274,10 +282,13 @@ private fun CategoryDropdown(
                 .fillMaxWidth(),
             readOnly = true,
             enabled = !readOnly,
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },
@@ -291,6 +302,7 @@ private fun CategoryDropdown(
     }
 }
 
+@SuppressLint("NewApi")
 @Composable
 private fun DateTimeRow(
     date: LocalDate,
@@ -324,7 +336,7 @@ private fun DateTimeRow(
             modifier = Modifier.weight(1f),
             enabled = !readOnly
         ) {
-            Icon(imageVector = Icons.Filled.CalendarToday, contentDescription = "Tanggal")
+            Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Tanggal")
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = date.format(dateFormatter))
         }
@@ -346,15 +358,16 @@ private fun DateTimeRow(
             modifier = Modifier.weight(1f),
             enabled = !readOnly
         ) {
-            Icon(imageVector = Icons.Filled.Schedule, contentDescription = "Waktu")
+            Text(text = "🕐")
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = time.format(timeFormatter))
         }
     }
 }
 
+@SuppressLint("NewApi")
 @Composable
-private fun TaskFormSaver() = androidx.compose.runtime.saveable.Saver<TaskFormState, Any>(
+private fun taskFormSaver() = androidx.compose.runtime.saveable.Saver<TaskFormState, Any>(
     save = {
         listOf(
             it.title,
