@@ -1,5 +1,6 @@
 package com.example.taskmate.viewmodel
 
+import androidx.core.util.PatternsCompat
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +43,7 @@ class LoginViewModel : ViewModel() {
             _uiState.value = state.copy(errorMessage = "Email tidak boleh kosong")
             return
         }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) {
+        if (!PatternsCompat.EMAIL_ADDRESS.matcher(state.email).matches()) {
             _uiState.value = state.copy(errorMessage = "Format email tidak valid")
             return
         }
